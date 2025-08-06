@@ -79,3 +79,12 @@ if (storedCalc !== null) {
   firstNumber = result;
   updateDisplay();
 }
+
+
+// Attach event listeners to all calculator buttons
+document.querySelectorAll('button[data-value]').forEach(button => {
+  button.addEventListener('click', () => {
+    const value = button.getAttribute('data-value');
+    updateCalculator(value);
+  });
+});
