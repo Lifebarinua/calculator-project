@@ -2,39 +2,69 @@ let firstNumber = '';
 let operator = '';
 let secondNumber = '';
 let result = '';
+let resetNextInput = false;
 
 const displayElement = document.getElementById('calcDisplay');
 
 function updateCalculator(input) {
-  if (input === '') {
+  if (input === 'clear') {
     clearCalculator();
     return;
   }
 
+  if (input === 'backspace') {
+    handleBackspace();
+    return;
+  }
+
   if (isDigit(input)) {
+    if (resetNextInput) {
+      firstNumber = '';
+      secondNumber = '';
+      operator = '';
+      result = '';
+      resetNextInput = false;
+    }
+
+    let current = operator ? secondNumber : firstNumber;
+
+    // Prevent multiple decimals
+    if (input === '.' && current.includes('.')) return;
+
+    current += input;
+
     if (!operator) {
-      firstNumber += input;
+      firstNumber = current;
       result = firstNumber;
     } else {
-      secondNumber += input;
+      secondNumber = current;
       result = secondNumber;
     }
-  } else if (isOperator(input)) {
-    if (firstNumber && secondNumber) {
-      // Evaluate previous pair
+  }
+
+  else if (isOperator(input)) {
+    if (!firstNumber) return;
+
+    if (!secondNumber) {
+      operator = input;
+    } else {
       const computed = compute(parseFloat(firstNumber), operator, parseFloat(secondNumber));
-      firstNumber = computed.toString();
+      result = typeof computed === 'number' ? formatResult(computed).toString() : computed;
+      firstNumber = result;
       secondNumber = '';
-      result = firstNumber;
+      operator = input;
+      resetNextInput = true;
     }
-    operator = input;
-  } else if (input === '=') {
+  }
+
+  else if (input === '=') {
     if (firstNumber && operator && secondNumber) {
       const computed = compute(parseFloat(firstNumber), operator, parseFloat(secondNumber));
-      result = computed.toString();
+      result = typeof computed === 'number' ? formatResult(computed).toString() : computed;
       firstNumber = result;
       secondNumber = '';
       operator = '';
+      resetNextInput = true;
     }
   }
 
@@ -46,9 +76,13 @@ function compute(num1, op, num2) {
     case '+': return num1 + num2;
     case '-': return num1 - num2;
     case '*': return num1 * num2;
-    case '/': return num2 !== 0 ? num1 / num2 : 'Error';
+    case '/': return num2 !== 0 ? num1 / num2 : "🤨 Can't divide by 0";
     default: return num1;
   }
+}
+
+function formatResult(num) {
+  return parseFloat(num.toFixed(4));
 }
 
 function isDigit(char) {
@@ -59,20 +93,36 @@ function isOperator(char) {
   return ['+', '-', '*', '/'].includes(char);
 }
 
-function clearCalculator() {
-  firstNumber = '';
-  operator = '';
-  secondNumber = '';
-  result = '';
+function handleBackspace() {
+  if (resetNextInput) return;
+  if (secondNumber) {
+    secondNumber = secondNumber.slice(0, -1);
+    result = secondNumber || '0';
+  } else if (operator) {
+    operator = '';
+  } else if (firstNumber) {
+    firstNumber = firstNumber.slice(0, -1);
+    result = firstNumber || '0';
+  }
   updateDisplay();
 }
 
-function updateDisplay() {
-  displayElement.textContent = result || '0';
-  localStorage.setItem('calculation', result);
+function clearCalculator() {
+  firstNumber = '';
+  secondNumber = '';
+  operator = '';
+  result = '';
+  resetNextInput = false;
+  updateDisplay('0');
+  localStorage.removeItem('calculation');
 }
 
-// Restore on load
+function updateDisplay(content = result) {
+  displayElement.textContent = content || '0';
+  localStorage.setItem('calculation', content);
+}
+
+// Restore last result if available
 const storedCalc = localStorage.getItem('calculation');
 if (storedCalc !== null) {
   result = storedCalc;
@@ -80,11 +130,22 @@ if (storedCalc !== null) {
   updateDisplay();
 }
 
-
-// Attach event listeners to all calculator buttons
+// Attach event listeners to buttons
 document.querySelectorAll('button[data-value]').forEach(button => {
   button.addEventListener('click', () => {
     const value = button.getAttribute('data-value');
     updateCalculator(value);
   });
+});
+
+// ✅ Keyboard support
+document.addEventListener('keydown', (e) => {
+  const key = e.key;
+
+  if (/[0-9]/.test(key)) updateCalculator(key);
+  else if (['+', '-', '*', '/'].includes(key)) updateCalculator(key);
+  else if (key === 'Enter') updateCalculator('=');
+  else if (key === 'Backspace') updateCalculator('backspace');
+  else if (key === 'Escape') updateCalculator('clear');
+  else if (key === '.') updateCalculator('.');
 });

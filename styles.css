@@ -1,27 +1,17 @@
-body{
+body {
   background-color: black;
 }
-.display{
+
+.display {
   color: white;
   font-size: 45px;
   margin-top: 15px;
   margin-bottom: 5px;
 }
+
 .calcu {
-background-color: rgb(51, 51, 51);
-color: white;
-
-height: 60px;
-width: 60px;
-border-radius: 60px;
-border: none;
-font-size: 26px;
-cursor: pointer;
-margin-right: 5px;
-}
-.sign{
-  background-color: rgb(254, 160, 10);
-
+  background-color: rgb(51, 51, 51);
+  color: white;
   height: 60px;
   width: 60px;
   border-radius: 60px;
@@ -30,6 +20,18 @@ margin-right: 5px;
   cursor: pointer;
   margin-right: 5px;
 }
-p{
+
+.sign {
+  background-color: rgb(254, 160, 10);
+  height: 60px;
+  width: 60px;
+  border-radius: 60px;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+p {
   color: white;
 }
