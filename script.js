@@ -1,48 +1,81 @@
-let calculation = '';
-  
-function updateCalculator (number) {
-if (number === '') {
-  calculation = '';
-  console.log('cleared');
-} else if (number === '+'){
-  calculation += '+';
-} else if (number === '='){
-  calculation = evaluateExpression(calculation).toString();   //this is used to replave calculation = eval(calculation);
-} else {
-calculation += number;
-}
-console.log(calculation);
-}
-
-function evaluateExpression(expr) {
-  try {
-    // Only allow digits, operators, and decimal points
-    if (/^[\d+\-*/.() ]+$/.test(expr)) {
-      // Create a new function that returns the evaluated result
-      return new Function('return ' + expr)();
-    } else {
-      throw new Error('Invalid characters in expression.');
-    }
-  } catch (err) {
-    console.error('Evaluation error:', err.message);
-    return 'Error';
-  }
-}
-
+let firstNumber = '';
+let operator = '';
+let secondNumber = '';
+let result = '';
 
 const displayElement = document.getElementById('calcDisplay');
 
-// Override console.log to also update display and localStorage
-const originalLog = console.log;
-console.log = function (message) {
-originalLog(message); // keep original behavior
-displayElement.textContent =  calculation;
-localStorage.setItem('calculation', calculation);
-};
+function updateCalculator(input) {
+  if (input === '') {
+    clearCalculator();
+    return;
+  }
 
-// On page load, load from localStorage if it exists
+  if (isDigit(input)) {
+    if (!operator) {
+      firstNumber += input;
+      result = firstNumber;
+    } else {
+      secondNumber += input;
+      result = secondNumber;
+    }
+  } else if (isOperator(input)) {
+    if (firstNumber && secondNumber) {
+      // Evaluate previous pair
+      const computed = compute(parseFloat(firstNumber), operator, parseFloat(secondNumber));
+      firstNumber = computed.toString();
+      secondNumber = '';
+      result = firstNumber;
+    }
+    operator = input;
+  } else if (input === '=') {
+    if (firstNumber && operator && secondNumber) {
+      const computed = compute(parseFloat(firstNumber), operator, parseFloat(secondNumber));
+      result = computed.toString();
+      firstNumber = result;
+      secondNumber = '';
+      operator = '';
+    }
+  }
+
+  updateDisplay();
+}
+
+function compute(num1, op, num2) {
+  switch (op) {
+    case '+': return num1 + num2;
+    case '-': return num1 - num2;
+    case '*': return num1 * num2;
+    case '/': return num2 !== 0 ? num1 / num2 : 'Error';
+    default: return num1;
+  }
+}
+
+function isDigit(char) {
+  return /[0-9.]/.test(char);
+}
+
+function isOperator(char) {
+  return ['+', '-', '*', '/'].includes(char);
+}
+
+function clearCalculator() {
+  firstNumber = '';
+  operator = '';
+  secondNumber = '';
+  result = '';
+  updateDisplay();
+}
+
+function updateDisplay() {
+  displayElement.textContent = result || '0';
+  localStorage.setItem('calculation', result);
+}
+
+// Restore on load
 const storedCalc = localStorage.getItem('calculation');
 if (storedCalc !== null) {
-calculation = storedCalc;
-displayElement.textContent =  calculation;
+  result = storedCalc;
+  firstNumber = result;
+  updateDisplay();
 }
