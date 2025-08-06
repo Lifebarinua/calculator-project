@@ -7,11 +7,26 @@ if (number === '') {
 } else if (number === '+'){
   calculation += '+';
 } else if (number === '='){
-calculation = eval (calculation);
+  calculation = evaluateExpression(calculation).toString();   //this is used to replave calculation = eval(calculation);
 } else {
 calculation += number;
 }
 console.log(calculation);
+}
+
+function evaluateExpression(expr) {
+  try {
+    // Only allow digits, operators, and decimal points
+    if (/^[\d+\-*/.() ]+$/.test(expr)) {
+      // Create a new function that returns the evaluated result
+      return new Function('return ' + expr)();
+    } else {
+      throw new Error('Invalid characters in expression.');
+    }
+  } catch (err) {
+    console.error('Evaluation error:', err.message);
+    return 'Error';
+  }
 }
 
 
